@@ -1,0 +1,18 @@
+{
+  "name": "3D Druck Helper",
+  "short_name": "3D Helper",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050608",
+  "theme_color": "#050608",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

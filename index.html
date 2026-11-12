@@ -1,0 +1,2243 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050608">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="3D Druck Helper">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <title>3D Druck Helper</title>
+
+  <style>
+    :root, :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #050608;
+      --surface: #101216;
+      --surface-2: #191c22;
+      --text: #f4f5f7;
+      --muted: #a0a5b0;
+      --line: #292d35;
+      --accent: #8b5cf6;
+      --accent-soft: #271d3c;
+      --danger: #ef4657;
+      --warning: #facc15;
+      --ok: #22c55e;
+      --shadow: 0 8px 26px rgba(0,0,0,.4);
+    }
+
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f4f6fb;
+      --surface: #fff;
+      --surface-2: #eef2f8;
+      --text: #192235;
+      --muted: #68758a;
+      --line: #e1e6ef;
+      --accent: #2864e8;
+      --accent-soft: #e8efff;
+      --danger: #cf3346;
+      --warning: #c88b00;
+      --ok: #1f9d4e;
+      --shadow: 0 8px 26px rgba(30,48,80,.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      padding: max(12px, env(safe-area-inset-top)) 14px max(24px, env(safe-area-inset-bottom));
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 22px 14px;
+    }
+
+    .app { max-width: 1100px; margin: auto; }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 4px 0 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .brand img {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      border-radius: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: -.03em;
+    }
+
+    h2 {
+      margin: 0 0 4px;
+      font-size: 1.15rem;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: .82rem;
+      margin-top: 3px;
+    }
+
+    .btn {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 13px;
+      background: var(--surface-2);
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .btn.danger {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: white;
+    }
+
+    .btn.icon {
+      width: 44px;
+      padding: 0;
+      font-size: 1.1rem;
+    }
+
+    .toolbar, .panel, .stat, .modal, .home-card, .dash-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .home-shell {
+      min-height: 72vh;
+      display: grid;
+      place-items: center;
+      padding: 20px 0;
+    }
+
+    .home-box {
+      width: min(980px, 100%);
+      padding: 26px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .home-card {
+      padding: 20px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .home-card h3 {
+      margin: 12px 0 0;
+      font-size: 1.14rem;
+    }
+
+    .home-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: .92rem;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: .72rem;
+      font-weight: 700;
+    }
+
+    .home-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      margin-top: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--accent-soft);
+      font-size: 1.5rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .stat {
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      font-size: .75rem;
+      margin-bottom: 5px;
+    }
+
+    .stat strong {
+      font-size: 1.12rem;
+    }
+
+    .toolbar {
+      padding: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .search { flex: 1 1 210px; }
+
+    input, select, textarea {
+      width: 100%;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+
+    .filters select {
+      flex: 1;
+      min-width: 130px;
+    }
+
+    .low-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 12px;
+    }
+
+    #list, .job-list, .safe-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #list { max-height: 58vh; overflow: auto; }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      padding: 13px 15px;
+      color: var(--text);
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .row.selected { background: var(--accent-soft); }
+
+    .swatch {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1px solid #8888;
+      flex: 0 0 auto;
+    }
+
+    .status-light {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      flex: 0 0 13px;
+      border: 1px solid #ffffff66;
+    }
+
+    .status-light.green {
+      background: var(--ok);
+      box-shadow: 0 0 8px rgba(34,197,94,.7);
+    }
+
+    .status-light.yellow {
+      background: var(--warning);
+      box-shadow: 0 0 8px rgba(250,204,21,.7);
+    }
+
+    .status-light.red {
+      background: var(--danger);
+      box-shadow: 0 0 8px rgba(239,68,68,.7);
+    }
+
+    .status-light.small {
+      width: 10px;
+      height: 10px;
+      flex-basis: 10px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 10px 15px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .row-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .row-title, .row-sub {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .row-title { font-weight: 700; }
+    .row-sub {
+      color: var(--muted);
+      font-size: .8rem;
+      margin-top: 3px;
+    }
+
+    .row-rest {
+      text-align: right;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    .row-rest small {
+      display: block;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .detail { padding: 16px; }
+
+    .progress {
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 14px 0;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      width: 0;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .detail-cell {
+      background: var(--surface-2);
+      border-radius: 11px;
+      padding: 9px;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-cell small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .muted { color: var(--muted); }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .job-list li {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .job-list li:last-child { border-bottom: 0; }
+
+    .job-meta {
+      color: var(--muted);
+      font-size: .82rem;
+      margin-top: 5px;
+      overflow-wrap: anywhere;
+    }
+
+    .history-block {
+      margin-top: 16px;
+    }
+
+    .history-block h3 {
+      margin: 0 0 8px;
+      font-size: .92rem;
+    }
+
+    .history-entry {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+      margin-top: 6px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      font-size: .82rem;
+    }
+
+    .history-entry span { color: var(--muted); }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .dash-card {
+      padding: 16px;
+    }
+
+    .dash-card h4 {
+      margin: 0 0 8px;
+      font-size: .78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .dash-value {
+      font-size: clamp(1.35rem, 2vw, 2.1rem);
+      font-weight: 800;
+      letter-spacing: -.04em;
+    }
+
+    .chart-wrap {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .safe-list {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .safe-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--surface-2);
+    }
+
+    .safe-item strong { display: block; }
+    .safe-item .meta { color: var(--muted); font-size: .8rem; }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+
+    .status-pill.green { color: var(--ok); }
+    .status-pill.yellow { color: var(--warning); }
+    .status-pill.red { color: var(--danger); }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot.green { background: var(--ok); }
+    .dot.yellow { background: var(--warning); }
+    .dot.red { background: var(--danger); }
+
+    .reorder-columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .reorder-dropzone {
+      min-height: 120px;
+    }
+
+    .reorder-card {
+      margin: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-2);
+      cursor: grab;
+    }
+
+    .reorder-card:active { cursor: grabbing; }
+    .reorder-card.dragging { opacity: .45; }
+
+    .reorder-card a {
+      display: inline-block;
+      margin-top: 8px;
+      color: var(--accent);
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+
+    .reorder-card a:hover { text-decoration: underline; }
+
+    .reorder-dropzone.drag-over {
+      outline: 2px dashed var(--accent);
+      outline-offset: -4px;
+      background: var(--accent-soft);
+    }
+
+    .job-lines {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .job-line {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 115px auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-2);
+    }
+
+    .job-line select, .job-line input { min-width: 0; }
+
+    .job-line-available {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .modal-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      background: rgba(0,0,0,.72);
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+
+    .modal {
+      width: min(640px, 100%);
+      max-height: 90dvh;
+      overflow: auto;
+      padding: 16px;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .modal-head h2 { margin: 0; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      transition: opacity .25s ease;
+    }
+
+    #splash img {
+      display: block;
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 10px;
+      border-radius: 14px;
+      object-fit: contain;
+    }
+
+    #splash strong {
+      display: block;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .home-grid { grid-template-columns: 1fr; }
+      .layout { grid-template-columns: 1fr; }
+      #list { max-height: 44vh; }
+      .reorder-columns { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .dashboard-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .job-line { grid-template-columns: minmax(0,1fr) auto; }
+      .job-line select { grid-column: 1 / -1; }
+      .history-entry { grid-template-columns: 1fr 1fr; }
+      .top { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <div><img src="./icon.svg" alt=""><strong>3D Druck Helper</strong></div>
+  </div>
+
+  <main class="app">
+    <section id="homeView" class="view">
+      <header class="top">
+        <div class="brand">
+          <img src="./icon.svg" alt="">
+          <div><h1>3D Druck Helper</h1><div class="subtitle">Dein 3D-Druck-Management</div></div>
+        </div>
+        <button class="btn icon" type="button" data-theme-toggle aria-label="Darstellung wechseln">◐</button>
+      </header>
+
+      <div class="home-shell">
+        <div class="home-box">
+          <div class="home-grid">
+            <article class="home-card">
+              <div>
+                <span class="tag">BESTAND</span>
+                <div class="home-icon">🧵</div>
+                <h3>Filament Manager</h3>
+                <p>Spulen, Lagerort, Preise und Produktlinks verwalten.</p>
+              </div>
+              <button class="btn primary" type="button" data-view="manager">Zum Manager</button>
+            </article>
+
+            <article class="home-card">
+              <div>
+                <span class="tag">NACHKAUF</span>
+                <div class="home-icon">📦</div>
+                <h3>Nachkauf-Liste</h3>
+                <p>Filamente nachkaufen oder nicht nachkaufen, per Drag &amp; Drop verwalten.</p>
+              </div>
+              <button class="btn primary" type="button" data-view="reorder">Zur Nachkauf-Liste</button>
+            </article>
+
+            <article class="home-card">
+              <div>
+                <span class="tag">STATISTIK</span>
+                <div class="home-icon">📈</div>
+                <h3>Verbrauch &amp; Kosten</h3>
+                <p>Auftragskosten, Trends und Ampelstatus im Blick.</p>
+              </div>
+              <button class="btn primary" type="button" data-view="dashboard">Zur Statistik</button>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="managerView" class="view hidden">
+      <header class="top">
+        <div class="brand">
+          <img src="./icon.svg" alt="">
+          <div><h1>Filament Manager</h1><div class="subtitle">Dein Filamentbestand</div></div>
+        </div>
+        <div class="actions">
+          <button class="btn" type="button" data-view="home">Startseite</button>
+          <button class="btn icon" type="button" data-theme-toggle aria-label="Darstellung wechseln">◐</button>
+        </div>
+      </header>
+
+      <section class="stats">
+        <div class="stat"><small>Spulen</small><strong id="statCount">0</strong></div>
+        <div class="stat"><small>Restmenge</small><strong id="statGrams">0 g</strong></div>
+        <div class="stat"><small>Restwert</small><strong id="statValue">0,00 €</strong></div>
+        <div class="stat"><small>Fast leer</small><strong id="statLow">0</strong></div>
+      </section>
+
+      <section class="toolbar">
+        <input id="search" class="search" type="search" placeholder="Suchen: Marke, Farbe, Lagerort …">
+        <button class="btn" type="button" id="importBtn">CSV importieren</button>
+        <input id="csvFile" type="file" accept=".csv,text/csv" class="hidden">
+        <button class="btn" type="button" id="exportBtn">CSV exportieren</button>
+        <button class="btn" type="button" id="jobBtn">＋ Druckauftrag</button>
+        <button class="btn primary" type="button" id="newBtn">＋ Neue Spule</button>
+      </section>
+
+      <section class="filters">
+        <select id="brandFilter" aria-label="Marke filtern"></select>
+        <select id="materialFilter" aria-label="Material filtern"></select>
+        <select id="sort" aria-label="Sortierung">
+          <option value="brand">Marke</option>
+          <option value="material">Material</option>
+          <option value="colorName">Farbe</option>
+          <option value="remaining">Restmenge</option>
+          <option value="percent">Füllstand</option>
+        </select>
+        <label class="low-toggle"><input id="lowOnly" type="checkbox"> Fast leer</label>
+      </section>
+
+      <section class="layout">
+        <div class="panel">
+          <div class="panel-title">Spulen</div>
+          <div class="legend" aria-label="Füllstand-Ampel">
+            <span><i class="status-light small green"></i> Grün: über 50 %</span>
+            <span><i class="status-light small yellow"></i> Gelb: 10–50 %</span>
+            <span><i class="status-light small red"></i> Rot: unter 10 %</span>
+          </div>
+          <ul id="list"></ul>
+        </div>
+
+        <aside class="panel detail" id="detail">
+          <div class="empty">Noch keine Spule ausgewählt.</div>
+        </aside>
+      </section>
+
+      <section class="panel section">
+        <div class="panel-title">Druckhistorie</div>
+        <ul id="jobList" class="job-list"></ul>
+      </section>
+    </section>
+
+    <section id="reorderView" class="view hidden">
+      <header class="top">
+        <div class="brand">
+          <img src="./icon.svg" alt="">
+          <div><h1>Nachkauf-Liste</h1><div class="subtitle">Filamente mit Kategorien</div></div>
+        </div>
+        <button class="btn" type="button" data-view="home">Startseite</button>
+      </header>
+
+      <div class="reorder-columns">
+        <section class="panel reorder-column">
+          <div class="panel-title">Nachkaufen</div>
+          <ul id="reorderBuyList" class="job-list reorder-dropzone" data-category="buy"></ul>
+        </section>
+
+        <section class="panel reorder-column">
+          <div class="panel-title">Nicht nachkaufen</div>
+          <ul id="reorderSkipList" class="job-list reorder-dropzone" data-category="skip"></ul>
+        </section>
+      </div>
+    </section>
+
+    <section id="dashboardView" class="view hidden">
+      <header class="top">
+        <div class="brand">
+          <img src="./icon.svg" alt="">
+          <div><h1>Verbrauch &amp; Kosten</h1><div class="subtitle">Statistik und Historie</div></div>
+        </div>
+        <button class="btn" type="button" data-view="home">Startseite</button>
+      </header>
+
+      <div class="dashboard-grid">
+        <div class="dash-card"><h4>Verbrauch</h4><div class="dash-value" id="dashboardGrams">0 g</div></div>
+        <div class="dash-card"><h4>Produktkosten</h4><div class="dash-value" id="dashboardCost">0,00 €</div></div>
+        <div class="dash-card"><h4>Aufträge</h4><div class="dash-value" id="dashboardJobs">0</div></div>
+        <div class="dash-card"><h4>Spulen unter 50 %</h4><div class="dash-value" id="dashboardWarnings">0</div></div>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="top">
+          <strong>Verbrauchs- &amp; Kosten-Trend</strong>
+          <select id="trendRange" style="max-width:180px" aria-label="Zeitraum">
+            <option value="7">Letzte 7 Tage</option>
+            <option value="30" selected>Letzte 30 Tage</option>
+            <option value="90">Letzte 90 Tage</option>
+            <option value="365">Letzte 365 Tage</option>
+          </select>
+        </div>
+        <svg id="trendChart" width="100%" height="220" viewBox="0 0 800 220" preserveAspectRatio="none" role="img" aria-label="Trenddiagramm"></svg>
+        <div class="job-meta"><span style="color:#8b5cf6">━ Verbrauch (g)</span> &nbsp; <span style="color:#22c55e">┅ Kosten (€)</span></div>
+      </div>
+
+      <div class="panel section">
+        <div class="panel-title">Ampelstatus</div>
+        <ul id="statusList" class="safe-list"></ul>
+      </div>
+
+      <div class="panel section">
+        <div class="panel-title">Auftragsverlauf</div>
+        <ul id="dashboardHistory" class="job-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-wrap hidden" id="spoolModal">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="spoolModalTitle">
+      <div class="modal-head">
+        <h2 id="spoolModalTitle">Neue Spule</h2>
+        <button class="btn" type="button" data-close="spoolModal">Schließen</button>
+      </div>
+
+      <form id="spoolForm">
+        <div class="form-grid">
+          <div class="field">
+            <label for="brandSelect">Marke *</label>
+            <select id="brandSelect"></select>
+            <input id="brandInput" class="hidden" type="text">
+          </div>
+
+          <div class="field">
+            <label for="materialSelect">Material *</label>
+            <select id="materialSelect"></select>
+            <input id="materialInput" class="hidden" type="text">
+          </div>
+
+          <div class="field">
+            <label for="colorSelect">Farbe</label>
+            <select id="colorSelect"></select>
+            <input id="colorName" class="hidden" type="text" placeholder="Eigene Farbe">
+          </div>
+
+          <div class="field">
+            <label for="colorHex">Farbcode</label>
+            <input id="colorHex" type="color" value="#b9c2d0">
+          </div>
+
+          <div class="field">
+            <label for="spoolWeight">Filament-Nettogewicht (g) *</label>
+            <input id="spoolWeight" type="number" min="1" step="1" required>
+          </div>
+
+          <div class="field">
+            <label for="totalWeight">Gesamtgewicht inkl. Spule (g)</label>
+            <input id="totalWeight" type="number" min="1" step="1">
+          </div>
+
+          <div class="field">
+            <label for="emptyWeight">Leerspule (g, berechnet)</label>
+            <input id="emptyWeight" type="number" readonly>
+          </div>
+
+          <div class="field">
+            <label for="locationSelect">Lagerort</label>
+            <select id="locationSelect">
+              <option value="Trocken Kiste">Trocken Kiste</option>
+              <option value="Regal">Regal</option>
+            </select>
+          </div>
+
+          <div class="field"><label for="diameter">Durchmesser (mm)</label><input id="diameter" type="number" min=".1" step=".01"></div>
+          <div class="field"><label for="remaining">Rest (g)</label><input id="remaining" type="number" min="0" step="1"></div>
+          <div class="field"><label for="price">Preis pro Spule (€)</label><input id="price" type="number" min="0" step=".01"></div>
+          <div class="field"><label for="purchased">Gekauft am</label><input id="purchased" type="date"></div>
+          <div class="field"><label for="nozzleTemp">Düse (°C)</label><input id="nozzleTemp"></div>
+          <div class="field"><label for="bedTemp">Bett (°C)</label><input id="bedTemp"></div>
+
+          <div class="field full">
+            <label for="sellerUrl">Produktlink beim Verkäufer</label>
+            <input id="sellerUrl" type="url" inputmode="url" placeholder="https://shop.example/produkt">
+          </div>
+
+          <div class="field full">
+            <label for="code">Scan-Code</label>
+            <input id="code" placeholder="Barcode/RFID-Code">
+          </div>
+
+          <div class="field full">
+            <label for="notes">Notizen</label>
+            <textarea id="notes" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn" type="button" data-close="spoolModal">Abbrechen</button>
+          <button class="btn primary" type="submit">Speichern</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-wrap hidden" id="jobModal">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="jobModalTitle">
+      <div class="modal-head">
+        <h2 id="jobModalTitle">Druckauftrag</h2>
+        <button class="btn" type="button" data-close="jobModal">Schließen</button>
+      </div>
+
+      <form id="jobForm">
+        <div class="form-grid">
+          <div class="field full">
+            <label for="jobName">Druckname / Auftrag *</label>
+            <input id="jobName" required placeholder="z. B. Gehäuse">
+          </div>
+
+          <div class="field full">
+            <label for="jobSpoolSearch">Filamente im Bestand suchen</label>
+            <input id="jobSpoolSearch" type="search" placeholder="Marke, Material, Farbe oder Lagerort">
+          </div>
+
+          <div class="field full">
+            <label>Filamente für den Auftrag</label>
+            <div id="jobLines" class="job-lines"></div>
+            <button class="btn" type="button" id="addJobLineBtn">＋ Filament hinzufügen</button>
+            <div class="job-meta" id="jobPreview">Gesamt: 0 g · 0,00 €</div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn" type="button" data-close="jobModal">Abbrechen</button>
+          <button class="btn primary" type="submit">Auftrag speichern</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script>
+    "use strict";
+
+    const STORAGE = {
+      items: "filament-manager-v10",
+      jobs: "filament-manager-jobs-v5",
+      reorder: "filament-manager-reorder-v5"
+    };
+
+    const LEGACY_KEYS = {
+      items: ["3d-druck-helper-ready-items", "3d-druck-helper-v5", "3d-druck-helper-v4", "filament-manager-v3"],
+      jobs: ["3d-druck-helper-ready-jobs", "3d-druck-helper-jobs-v3", "3d-druck-helper-jobs-v2", "filament-manager-jobs-v1"],
+      reorder: ["3d-druck-helper-ready-reorder", "3d-druck-helper-reorder-v3", "3d-druck-helper-reorder-v2", "filament-manager-reorder-v1"]
+    };
+
+    const BRAND_MATERIALS = {
+      "Bambu Lab": ["PLA Basic","PLA Matte","PLA Silk+","PLA Tough+","PLA-CF","PLA Glow","PLA Aero","PETG Basic","PETG HF","PETG-CF","ABS","ASA","TPU 95A HF","PA6-CF","PAHT-CF","PC","Support for PLA","Support for PETG","Support for PA/PET","Support for ABS"],
+      "Generic": ["PLA","PLA+","PLA Basic","PLA Matte","PLA Silk","PLA-CF","PETG","PETG+","PETG-CF","ABS","ASA","TPU","PA","PA-CF","PC","PVA","HIPS","PVB"],
+      "Polymaker": ["PolyLite PLA","PolyTerra PLA","PolyMax PLA","PLA-CF","PolyLite PETG","PolyMax PETG","PolyLite ABS","PolyLite ASA","PolyFlex TPU 90A","PolyFlex TPU 95A","PolyMide PA6-CF","PolyMide PA6-GF","PolyMide PA12-CF","PolyLite PC","PolySupport","PolyDissolve S1"],
+      "Overture": ["PLA","PLA+","PLA Pro","PLA Matte","PLA Silk","PLA-CF","PETG","PETG+","PETG-CF","TPU","TPU 95A","ABS","ASA","Nylon"],
+      "eSUN": ["PLA","PLA+","PLA-HS","PLA-ST","PLA Matte","PLA Silk","PLA-CF","PETG","PETG+","PETG-CF","ABS+","ASA","TPU","eTPU","PA","PA-CF","PC","PVA","HIPS"],
+      "SUNLU": ["PLA","PLA+","PLA Meta","PLA Matte","PLA Silk","PLA-CF","PETG","PETG+","PETG-CF","ABS","ASA","TPU","PA","PA-CF","PC","PVB"],
+      "Elegoo": ["PLA","PLA+","Rapid PLA+","PLA Matte","PLA Silk","PLA-CF","PETG","PETG+","Rapid PETG","ABS","TPU"]
+    };
+
+    const COLOR_MAP = {
+      "Weiß":"#f4f3ee","Schwarz":"#202126","Grau":"#858991","Silber":"#b8bec8",
+      "Rot":"#cf2838","Orange":"#f07827","Gelb":"#f3d44b","Grün":"#218b58",
+      "Blau":"#2766c7","Cyan":"#31b9c5","Lila":"#8046a8","Rosa":"#e786ad",
+      "Braun":"#79513b","Beige":"#d4bd91","Natur / Transparent":"#e6dfc9",
+      "Gold":"#d1a739","Regenbogen / Multicolor":"#8d69c5"
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function readSaved(kind) {
+      const primary = STORAGE[kind];
+      const fallbacks = LEGACY_KEYS[kind] || [];
+      for (const key of [primary, ...fallbacks]) {
+        try {
+          const value = JSON.parse(localStorage.getItem(key) || "null");
+          if (Array.isArray(value)) {
+            if (key !== primary) localStorage.setItem(primary, JSON.stringify(value));
+            return value;
+          }
+        } catch {}
+      }
+      return [];
+    }
+
+    let items = readSaved("items");
+    let jobs = readSaved("jobs");
+    let reorderList = readSaved("reorder");
+    let selectedId = null;
+    let editingId = null;
+
+    const saveItems = () => localStorage.setItem(STORAGE.items, JSON.stringify(items));
+    const saveJobs = () => localStorage.setItem(STORAGE.jobs, JSON.stringify(jobs));
+    const saveReorder = () => localStorage.setItem(STORAGE.reorder, JSON.stringify(reorderList));
+
+    function uid() {
+      return crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}-${Math.random()}`;
+    }
+
+    function today() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function num(value, fallback = 0) {
+      const parsed = Number(String(value ?? "").replace(",", "."));
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function normalizeHex(value) {
+      const text = String(value || "").trim();
+      const hex = text.startsWith("#") ? text : `#${text}`;
+      return /^#[0-9a-f]{6}$/i.test(hex) ? hex : "#b9c2d0";
+    }
+
+    function codeNorm(value) {
+      return String(value || "").replace(/[\s:-]/g, "").toUpperCase();
+    }
+
+    function esc(value) {
+      return String(value ?? "").replace(/[&<>"']/g, ch =>
+        ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch])
+      );
+    }
+
+    function percent(item) {
+      const total = Number(item.spoolWeight || 0);
+      return total > 0 ? Math.max(0, Math.min(100, Number(item.remaining || 0) / total * 100)) : 0;
+    }
+
+    function statusFor(item) {
+      const value = percent(item);
+      if (value < 10) return { color: "red", label: "Rot – unter 10 %" };
+      if (value <= 50) return { color: "yellow", label: "Gelb – 10 bis 50 %" };
+      return { color: "green", label: "Grün – über 50 %" };
+    }
+
+    function current() {
+      return items.find(item => item.id === selectedId) || null;
+    }
+
+    function dateText(value) {
+      const d = new Date(value || "");
+      return Number.isNaN(d.getTime()) ? "Datum unbekannt" : d.toLocaleString("de-DE");
+    }
+
+    function normalizeSellerUrl(value) {
+      const raw = String(value || "").trim();
+      if (!raw) return "";
+      try {
+        const url = new URL(raw);
+        if (!["http:", "https:"].includes(url.protocol)) return null;
+        return url.href;
+      } catch {
+        return null;
+      }
+    }
+
+    function showView(viewName) {
+      const views = ["home", "manager", "reorder", "dashboard"];
+      views.forEach(view => {
+        const target = $(`${view}View`);
+        if (target) target.classList.toggle("hidden", view !== viewName);
+      });
+
+      if (viewName === "manager") render();
+      if (viewName === "reorder") renderReorder();
+      if (viewName === "dashboard") renderDashboard();
+    }
+
+    document.addEventListener("click", (event) => {
+      const viewButton = event.target.closest("[data-view]");
+      if (viewButton) {
+        event.preventDefault();
+        showView(viewButton.dataset.view);
+      }
+
+      const closeButton = event.target.closest("[data-close]");
+      if (closeButton) {
+        const modal = $(closeButton.dataset.close);
+        if (modal) modal.classList.add("hidden");
+      }
+
+      const themeButton = event.target.closest("[data-theme-toggle]");
+      if (themeButton) {
+        const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem("3d-druck-helper-theme", next);
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.content = next === "dark" ? "#050608" : "#f4f6fb";
+      }
+    });
+
+    document.documentElement.dataset.theme =
+      localStorage.getItem("3d-druck-helper-theme") ||
+      localStorage.getItem("filament-theme") ||
+      "dark";
+
+    function fillBrandSelect(selected = "") {
+      const select = $("brandSelect");
+      if (!select) return;
+      const brands = Object.keys(BRAND_MATERIALS).sort((a, b) => a.localeCompare(b, "de"));
+      select.replaceChildren(...brands.map(brand => new Option(brand, brand)));
+      select.value = brands.includes(selected) ? selected : (brands[0] || "");
+      fillMaterialSelect();
+    }
+
+    function fillMaterialSelect(selected = "") {
+      const brandSelect = $("brandSelect");
+      const materialSelect = $("materialSelect");
+      if (!brandSelect || !materialSelect) return;
+      const materials = BRAND_MATERIALS[brandSelect.value] || [];
+      materialSelect.replaceChildren(...materials.map(material => new Option(material, material)));
+      materialSelect.disabled = materials.length === 0;
+      materialSelect.value = materials.includes(selected) ? selected : (materials[0] || "");
+    }
+
+    function updateEmptySpoolWeight() {
+      const total = num($("totalWeight")?.value, NaN);
+      const net = num($("spoolWeight")?.value, NaN);
+      const target = $("emptyWeight");
+      if (target) {
+        target.value = Number.isFinite(total) && Number.isFinite(net) && total >= net
+          ? (total - net).toFixed(1)
+          : "";
+      }
+    }
+
+    function openSpoolForm(item = null) {
+      editingId = item ? item.id : null;
+      const isNew = !item;
+
+      const title = $("spoolModalTitle");
+      if (title) title.textContent = isNew ? "Neue Spule" : "Spule bearbeiten";
+
+      const brandSelect = $("brandSelect");
+      const materialSelect = $("materialSelect");
+      const colorSelect = $("colorSelect");
+      const brandInput = $("brandInput");
+      const materialInput = $("materialInput");
+      const colorNameInput = $("colorName");
+
+      if (brandSelect) brandSelect.classList.toggle("hidden", !isNew);
+      if (materialSelect) materialSelect.classList.toggle("hidden", !isNew);
+      if (colorSelect) colorSelect.classList.toggle("hidden", !isNew);
+      if (brandInput) brandInput.classList.toggle("hidden", isNew);
+      if (materialInput) materialInput.classList.toggle("hidden", isNew);
+
+      if (isNew) {
+        fillBrandSelect();
+
+        if (colorSelect) {
+          const colors = Object.keys(COLOR_MAP);
+          colorSelect.replaceChildren(
+            ...colors.map(color => new Option(color, color)),
+            new Option("Eigene Farbe …", "__custom__")
+          );
+          colorSelect.value = "Weiß";
+        }
+
+        if ($("colorHex")) $("colorHex").value = COLOR_MAP["Weiß"] || "#b9c2d0";
+        if ($("diameter")) $("diameter").value = 1.75;
+        if ($("spoolWeight")) $("spoolWeight").value = 1000;
+        if ($("totalWeight")) $("totalWeight").value = 1250;
+        if ($("remaining")) $("remaining").value = 1000;
+        if ($("price")) $("price").value = 0;
+        if ($("purchased")) $("purchased").value = today();
+        if ($("nozzleTemp")) $("nozzleTemp").value = "";
+        if ($("bedTemp")) $("bedTemp").value = "";
+        if ($("sellerUrl")) $("sellerUrl").value = "";
+        if ($("code")) $("code").value = "";
+        if ($("notes")) $("notes").value = "";
+        if ($("locationSelect")) $("locationSelect").value = "Trocken Kiste";
+      } else {
+        if (brandInput) brandInput.value = item.brand || "";
+        if (materialInput) materialInput.value = item.material || "";
+        if (colorNameInput) {
+          colorNameInput.value = item.colorName || "";
+          colorNameInput.classList.remove("hidden");
+        }
+
+        if ($("colorHex")) $("colorHex").value = normalizeHex(item.colorHex);
+        if ($("diameter")) $("diameter").value = item.diameter ?? 1.75;
+        if ($("spoolWeight")) $("spoolWeight").value = item.spoolWeight ?? 1000;
+        if ($("totalWeight")) $("totalWeight").value = item.totalWeight ?? "";
+        if ($("remaining")) $("remaining").value = item.remaining ?? 0;
+        if ($("price")) $("price").value = item.price ?? 0;
+        if ($("purchased")) $("purchased").value = item.purchased || "";
+        if ($("nozzleTemp")) $("nozzleTemp").value = item.nozzleTemp || "";
+        if ($("bedTemp")) $("bedTemp").value = item.bedTemp || "";
+        if ($("sellerUrl")) $("sellerUrl").value = item.sellerUrl || "";
+        if ($("code")) $("code").value = item.code || "";
+        if ($("notes")) $("notes").value = item.notes || "";
+
+        const locationSelect = $("locationSelect");
+        if (locationSelect && item.location && ![...locationSelect.options].some(opt => opt.value === item.location)) {
+          locationSelect.add(new Option(item.location, item.location));
+        }
+        if (locationSelect) locationSelect.value = item.location || "Trocken Kiste";
+      }
+
+      updateEmptySpoolWeight();
+      const modal = $("spoolModal");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function partsForJob(job) {
+      if (Array.isArray(job.parts)) return job.parts;
+      if (job.spoolId) {
+        return [{ spoolId: job.spoolId, spoolLabel: job.spoolLabel || "Filament", grams: Number(job.grams || 0), cost: job.cost ?? null }];
+      }
+      return [];
+    }
+
+    function costOfPart(part) {
+      if (part.cost !== null && part.cost !== undefined && Number.isFinite(Number(part.cost))) {
+        return Number(part.cost);
+      }
+      const spool = items.find(item => item.id === part.spoolId);
+      if (!spool || Number(spool.spoolWeight) <= 0) return null;
+      return Number(part.grams || 0) * Number(spool.price || 0) / Number(spool.spoolWeight);
+    }
+
+    function savePriceHistory(previousItem, price) {
+      const history = Array.isArray(previousItem?.priceHistory) ? [...previousItem.priceHistory] : [];
+      if (!previousItem || Number(previousItem.price) !== price) {
+        history.push({ at: new Date().toISOString(), price });
+      }
+      return history;
+    }
+
+    function syncReorder() {
+      const validIds = new Set(items.map(item => item.id));
+      reorderList = reorderList.filter(entry => validIds.has(entry.spoolId));
+
+      items.forEach(item => {
+        if (percent(item) <= 10 && !reorderList.some(entry => entry.spoolId === item.id)) {
+          reorderList.push({ spoolId: item.id, category: "buy" });
+        }
+      });
+
+      reorderList.forEach(entry => {
+        if (!["buy", "skip"].includes(entry.category)) entry.category = "buy";
+      });
+
+      saveReorder();
+    }
+
+    function setReorderCategory(spoolId, category) {
+      const entry = reorderList.find(row => row.spoolId === spoolId);
+      if (!entry) return;
+      entry.category = category;
+      saveReorder();
+      renderReorder();
+    }
+
+    function renderReorder() {
+      syncReorder();
+
+      const buyList = $("reorderBuyList");
+      const skipList = $("reorderSkipList");
+
+      if (buyList) buyList.replaceChildren();
+      if (skipList) skipList.replaceChildren();
+
+      const makeEmpty = (message) => {
+        const li = document.createElement("li");
+        li.className = "empty";
+        li.textContent = message;
+        return li;
+      };
+
+      const makeCard = (entry) => {
+        const item = items.find(row => row.id === entry.spoolId);
+        if (!item) return null;
+
+        const li = document.createElement("li");
+        li.className = "reorder-card";
+        li.draggable = true;
+
+        const title = document.createElement("strong");
+        title.textContent = `${item.brand} · ${item.material}`;
+
+        const meta = document.createElement("div");
+        meta.className = "job-meta";
+        meta.textContent = `${item.colorName || "Ohne Farbe"} · ${item.location || "Kein Lagerort"} · ${Math.round(item.remaining)} g (${Math.round(percent(item))}%)`;
+
+        li.append(title, meta);
+
+        if (item.sellerUrl) {
+          const link = document.createElement("a");
+          link.href = item.sellerUrl;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "Beim Verkäufer öffnen";
+          li.append(link);
+        } else {
+          const noLink = document.createElement("div");
+          noLink.className = "job-meta";
+          noLink.textContent = "Kein Verkäufer-Link hinterlegt.";
+          li.append(noLink);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const openBtn = document.createElement("button");
+        openBtn.type = "button";
+        openBtn.className = "btn";
+        openBtn.textContent = "Spule öffnen";
+        openBtn.addEventListener("click", () => {
+          selectedId = item.id;
+          showView("manager");
+        });
+
+        const moveBtn = document.createElement("button");
+        moveBtn.type = "button";
+        moveBtn.className = "btn";
+        moveBtn.textContent = entry.category === "skip" ? "Zu Nachkaufen" : "Zu Nicht nachkaufen";
+        moveBtn.addEventListener("click", () => {
+          setReorderCategory(item.id, entry.category === "skip" ? "buy" : "skip");
+        });
+
+        actions.append(openBtn, moveBtn);
+        li.append(actions);
+
+        li.addEventListener("dragstart", (event) => {
+          event.dataTransfer.setData("text/plain", item.id);
+          event.dataTransfer.effectAllowed = "move";
+          li.classList.add("dragging");
+        });
+
+        li.addEventListener("dragend", () => li.classList.remove("dragging"));
+
+        return li;
+      };
+
+      reorderList.forEach(entry => {
+        const card = makeCard(entry);
+        if (!card) return;
+        const target = entry.category === "skip" ? skipList : buyList;
+        if (target) target.append(card);
+      });
+
+      if (buyList && !buyList.children.length) buyList.append(makeEmpty("Hier Spulen zum Nachkaufen ablegen."));
+      if (skipList && !skipList.children.length) skipList.append(makeEmpty("Hier Spulen ablegen, die nicht nachgekauft werden sollen."));
+
+      document.querySelectorAll(".reorder-dropzone").forEach(zone => {
+        zone.addEventListener("dragover", (event) => {
+          event.preventDefault();
+          zone.classList.add("drag-over");
+        });
+
+        zone.addEventListener("dragleave", (event) => {
+          if (!zone.contains(event.relatedTarget)) zone.classList.remove("drag-over");
+        });
+
+        zone.addEventListener("drop", (event) => {
+          event.preventDefault();
+          zone.classList.remove("drag-over");
+          const spoolId = event.dataTransfer.getData("text/plain");
+          setReorderCategory(spoolId, zone.dataset.category);
+        });
+      });
+    }
+
+    function addJobLine() {
+      const container = $("jobLines");
+      if (!container) return;
+
+      const line = document.createElement("div");
+      line.className = "job-line";
+
+      const select = document.createElement("select");
+      select.className = "job-spool";
+      select.setAttribute("aria-label", "Filament auswählen");
+
+      const grams = document.createElement("input");
+      grams.type = "number";
+      grams.min = "0.1";
+      grams.step = "0.1";
+      grams.placeholder = "Gramm";
+      grams.className = "job-grams";
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "btn";
+      remove.textContent = "Entfernen";
+
+      const available = document.createElement("div");
+      available.className = "job-line-available";
+
+      line.append(select, grams, remove, available);
+      container.append(line);
+
+      select.addEventListener("change", updateJobPreview);
+      grams.addEventListener("input", updateJobPreview);
+      remove.addEventListener("click", () => {
+        line.remove();
+        updateJobPreview();
+      });
+
+      populateJobSelect(select);
+      updateJobPreview();
+    }
+
+    function populateJobSelect(select) {
+      const query = ($("jobSpoolSearch")?.value || "").trim().toLocaleLowerCase();
+      const previous = select.value;
+      const matching = items.filter(item =>
+        [item.brand, item.material, item.colorName, item.location, item.code].join(" ").toLocaleLowerCase().includes(query) || item.id === previous
+      );
+
+      select.replaceChildren(new Option("Filament auswählen …", ""));
+      matching.forEach(item => {
+        select.add(new Option(`${item.brand} · ${item.material} · ${item.colorName || "Ohne Farbe"} · ${Math.round(item.remaining)} g`, item.id));
+      });
+
+      if (matching.some(item => item.id === previous)) {
+        select.value = previous;
+      }
+    }
+
+    function refreshJobSelects() {
+      document.querySelectorAll(".job-spool").forEach(select => populateJobSelect(select));
+      updateJobPreview();
+    }
+
+    function updateJobPreview() {
+      let totalGrams = 0;
+      let totalCost = 0;
+
+      document.querySelectorAll(".job-line").forEach(line => {
+        const item = items.find(row => row.id === line.querySelector(".job-spool")?.value);
+        const grams = num(line.querySelector(".job-grams")?.value, 0);
+        const available = line.querySelector(".job-line-available");
+
+        if (available) {
+          if (item) {
+            available.textContent = `Verfügbar: ${Math.round(item.remaining)} g · Preis: ${Number(item.price || 0).toFixed(2)} €`;
+          } else {
+            available.textContent = "Filament auswählen.";
+          }
+        }
+
+        if (item && grams > 0) {
+          totalGrams += grams;
+          const spoolWeight = Number(item.spoolWeight || 0);
+          if (spoolWeight > 0) {
+            totalCost += grams * Number(item.price || 0) / spoolWeight;
+          }
+        }
+      });
+
+      const preview = $("jobPreview");
+      if (preview) preview.textContent = `Gesamt: ${totalGrams.toFixed(1)} g · ${totalCost.toFixed(2)} €`;
+    }
+
+    function renderDetail() {
+      const box = $("detail");
+      if (!box) return;
+
+      const item = current();
+      if (!item) {
+        box.innerHTML = '<div class="empty">Keine Spule ausgewählt.</div>';
+        return;
+      }
+
+      const entries = jobs
+        .filter(job => partsForJob(job).some(part => part.spoolId === item.id))
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+      const historyMarkup = entries.length
+        ? entries.map(job => {
+            const part = partsForJob(job).find(p => p.spoolId === item.id);
+            const cost = part ? costOfPart(part) : null;
+            return `
+              <div class="history-entry">
+                <strong>${esc(job.name || "Druckauftrag")}</strong>
+                <span>${esc(dateText(job.createdAt))}</span>
+                <span>${Number(part?.grams || 0).toFixed(1)} g</span>
+                <span>${cost === null ? "—" : `${cost.toFixed(2)} €`}</span>
+              </div>
+            `;
+          }).join("")
+        : '<div class="job-meta">Noch keine Druckhistorie für diese Spule.</div>';
+
+      const priceHistory = Array.isArray(item.priceHistory) ? [...item.priceHistory].sort((a, b) => new Date(b.at || 0) - new Date(a.at || 0)) : [];
+      const priceMarkup = priceHistory.length
+        ? priceHistory.map(entry => `
+            <div class="history-entry">
+              <span>${esc(dateText(entry.at))}</span>
+              <strong>${Number(entry.price || 0).toFixed(2)} €</strong>
+              <span></span>
+              <span></span>
+            </div>
+          `).join("")
+        : '<div class="job-meta">Noch keine Preisänderungen gespeichert.</div>';
+
+      const sellerMarkup = item.sellerUrl
+        ? `<a href="${esc(item.sellerUrl)}" target="_blank" rel="noopener noreferrer">Produkt beim Verkäufer öffnen</a>`
+        : "Kein Link hinterlegt";
+
+      box.innerHTML = `
+        <h2>${esc(item.brand)} ${esc(item.material)}</h2>
+        <div class="muted">${esc(item.colorName || "Ohne Farbe")} · ${esc(item.location || "Kein Lagerort")}</div>
+
+        <div class="progress"><span style="width:${percent(item)}%"></span></div>
+
+        <div class="details-grid">
+          <div class="detail-cell"><small>Rest / Nettogewicht</small>${Math.round(item.remaining)} g / ${Math.round(item.spoolWeight)} g</div>
+          <div class="detail-cell"><small>Füllstand</small>${Math.round(percent(item))}% · ${statusFor(item).label}</div>
+          <div class="detail-cell"><small>Preis pro Spule</small>${num(item.price).toFixed(2)} €</div>
+          <div class="detail-cell"><small>Durchmesser</small>${esc(item.diameter)} mm</div>
+          <div class="detail-cell"><small>Leerspule</small>${item.emptySpoolWeight == null ? "Nicht eingetragen" : `${Number(item.emptySpoolWeight).toFixed(1)} g`}</div>
+          <div class="detail-cell"><small>Gesamtgewicht</small>${item.totalWeight ? `${esc(item.totalWeight)} g` : "Nicht eingetragen"}</div>
+          <div class="detail-cell"><small>Verkäufer</small>${sellerMarkup}</div>
+          <div class="detail-cell"><small>Scan-Code</small>${esc(item.code || "—")}</div>
+        </div>
+
+        ${item.notes ? `<p class="muted">${esc(item.notes)}</p>` : ""}
+
+        <div class="history-block">
+          <h3>Druckhistorie dieser Spule</h3>
+          ${historyMarkup}
+        </div>
+
+        <div class="history-block">
+          <h3>Preishistorie</h3>
+          ${priceMarkup}
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="button" data-action="consume">Verbrauch</button>
+          <button class="btn" type="button" data-action="weigh">Gewicht abgleichen</button>
+          <button class="btn" type="button" data-action="edit">Bearbeiten</button>
+          <button class="btn danger" type="button" data-action="delete">Löschen</button>
+        </div>
+      `;
+
+      box.querySelectorAll("[data-action]").forEach(button => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
+          if (action === "edit") { openSpoolForm(item); return; }
+
+          if (action === "delete") {
+            if (!confirm(`„${item.brand} ${item.material}“ wirklich löschen?`)) return;
+            items = items.filter(row => row.id !== item.id);
+            jobs = jobs.filter(job => !partsForJob(job).some(part => part.spoolId === item.id));
+            reorderList = reorderList.filter(row => row.spoolId !== item.id);
+            saveItems();
+            saveJobs();
+            saveReorder();
+            selectedId = null;
+            render();
+            return;
+          }
+
+          if (action === "consume") {
+            const amount = prompt("Verbrauch in Gramm eingeben:", "");
+            if (amount === null) return;
+            const grams = num(amount, NaN);
+            if (!Number.isFinite(grams) || grams <= 0) {
+              alert("Bitte einen gültigen Verbrauch in Gramm eingeben.");
+              return;
+            }
+
+            const actual = Math.min(grams, Number(item.remaining || 0));
+            item.remaining = Math.max(0, Number(item.remaining || 0) - actual);
+
+            jobs.push({
+              id: uid(),
+              name: "Manueller Verbrauch",
+              parts: [{ spoolId: item.id, spoolLabel: `${item.brand} · ${item.material}`, grams: actual, cost: item.spoolWeight > 0 ? actual * item.price / item.spoolWeight : null }],
+              grams: actual,
+              cost: item.spoolWeight > 0 ? actual * item.price / item.spoolWeight : null,
+              createdAt: new Date().toISOString()
+            });
+
+            saveItems();
+            saveJobs();
+            syncReorder();
+            render();
+            return;
+          }
+
+          if (action === "weigh") {
+            const tare = Number(item.emptySpoolWeight);
+            if (!Number.isFinite(tare) || tare < 0) {
+              alert("Leerspulengewicht fehlt. Bitte im Bearbeiten-Fenster Gesamtgewicht und Nettogewicht eintragen.");
+              return;
+            }
+
+            const gross = prompt("Aktuelles Gesamtgewicht inklusive Spule in Gramm:", (Number(item.remaining || 0) + tare).toFixed(1));
+            if (gross === null) return;
+
+            const measuredGross = num(gross, NaN);
+            if (!Number.isFinite(measuredGross) || measuredGross < tare) {
+              alert(`Bitte mindestens ${tare.toFixed(1)} g eingeben.`);
+              return;
+            }
+
+            const newRemaining = measuredGross - tare;
+            if (newRemaining > Number(item.spoolWeight)) {
+              alert(`Das Gewicht ergibt ${newRemaining.toFixed(1)} g Filament; aber die Spule hat nur ${Number(item.spoolWeight).toFixed(0)} g Nettogewicht.`);
+              return;
+            }
+
+            const oldRemaining = Number(item.remaining || 0);
+            const consumed = Math.max(0, oldRemaining - newRemaining);
+            item.remaining = newRemaining;
+            item.totalWeight = measuredGross;
+            item.emptySpoolWeight = tare;
+
+            if (consumed > 0) {
+              jobs.push({
+                id: uid(),
+                name: "Gewichtsabgleich",
+                parts: [{ spoolId: item.id, spoolLabel: `${item.brand} · ${item.material}`, grams: consumed, cost: item.spoolWeight > 0 ? consumed * item.price / item.spoolWeight : null }],
+                grams: consumed,
+                cost: item.spoolWeight > 0 ? consumed * item.price / item.spoolWeight : null,
+                createdAt: new Date().toISOString()
+              });
+            }
+
+            saveItems();
+            saveJobs();
+            syncReorder();
+            render();
+
+            alert(consumed > 0 ? `Gewicht aktualisiert. Verbrauch erfasst: ${consumed.toFixed(1)} g. Neuer Rest: ${newRemaining.toFixed(1)} g.` : `Gewicht aktualisiert. Neuer Rest: ${newRemaining.toFixed(1)} g.`);
+          }
+        });
+      });
+    }
+
+    function renderJobs() {
+      const list = $("jobList");
+      if (!list) return;
+
+      list.replaceChildren();
+
+      if (!jobs.length) {
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "Noch keine Druckaufträge.";
+        list.append(empty);
+        return;
+      }
+
+      [...jobs].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).forEach(job => {
+        const li = document.createElement("li");
+        const materials = partsForJob(job).map(part => `${part.spoolLabel || "Filament"} (${Number(part.grams || 0).toFixed(1)} g)`).join(" + ");
+        const totalCost = partsForJob(job).reduce((sum, part) => sum + (costOfPart(part) || 0), 0);
+
+        li.innerHTML = `
+          <strong>${esc(job.name || "Druckauftrag")}</strong>
+          <div class="job-meta">
+            ${esc(materials)} · Gesamt ${Number(job.grams || 0).toFixed(1)} g · ${Number.isFinite(totalCost) ? `${totalCost.toFixed(2)} €` : "Kosten unbekannt"} · ${esc(dateText(job.createdAt))}
+          </div>
+        `;
+        list.append(li);
+      });
+    }
+
+    function filterItems() {
+      const query = ($("search")?.value || "").trim().toLocaleLowerCase();
+      const brand = $("brandFilter")?.value || "Alle";
+      const material = $("materialFilter")?.value || "Alle";
+
+      const filtered = items.filter(item => {
+        const haystack = [item.brand, item.material, item.colorName, item.location, item.notes, item.code].join(" ").toLocaleLowerCase();
+        return (!query || haystack.includes(query)) &&
+          (brand === "Alle" || item.brand === brand) &&
+          (material === "Alle" || item.material === material) &&
+          (!$("lowOnly") || !$("lowOnly").checked || percent(item) <= 20);
+      });
+
+      const sort = $("sort")?.value || "brand";
+      filtered.sort((a, b) => {
+        if (sort === "remaining") return Number(b.remaining) - Number(a.remaining);
+        if (sort === "percent") return percent(b) - percent(a);
+        return String(a[sort] || "").localeCompare(String(b[sort] || ""), "de", { numeric: true });
+      });
+
+      return filtered;
+    }
+
+    function fillFilterOptions(select, values, currentValue) {
+      if (!select) return;
+      const options = ["Alle", ...new Set(values.filter(Boolean))].sort((a, b) => a === "Alle" ? -1 : b === "Alle" ? 1 : a.localeCompare(b, "de"));
+      select.replaceChildren(...options.map(value => new Option(value, value)));
+      select.value = options.includes(currentValue) ? currentValue : "Alle";
+    }
+
+    function render() {
+      const brandFilter = $("brandFilter");
+      const materialFilter = $("materialFilter");
+
+      if (brandFilter) fillFilterOptions(brandFilter, items.map(item => item.brand), brandFilter.value || "Alle");
+      if (materialFilter) fillFilterOptions(materialFilter, items.map(item => item.material), materialFilter.value || "Alle");
+
+      const gramsTotal = items.reduce((sum, item) => sum + num(item.remaining), 0);
+      const valueTotal = items.reduce((sum, item) => {
+        const spoolWeight = Number(item.spoolWeight || 0);
+        return sum + (spoolWeight > 0 ? Number(item.price || 0) * Number(item.remaining || 0) / spoolWeight : 0);
+      }, 0);
+
+      if ($("statCount")) $("statCount").textContent = items.length;
+      if ($("statGrams")) $("statGrams").textContent = `${Math.round(gramsTotal)} g`;
+      if ($("statValue")) $("statValue").textContent = `${valueTotal.toFixed(2)} €`;
+      if ($("statLow")) $("statLow").textContent = items.filter(item => percent(item) < 10).length;
+
+      const visible = filterItems();
+      if (!visible.some(item => item.id === selectedId)) selectedId = visible[0]?.id || null;
+
+      const list = $("list");
+      if (list) {
+        list.replaceChildren();
+
+        if (!visible.length) {
+          const empty = document.createElement("li");
+          empty.className = "empty";
+          empty.textContent = items.length ? "Keine passenden Spulen gefunden." : "Lege deine erste Spule an.";
+          list.append(empty);
+        } else {
+          visible.forEach(item => {
+            const chosen = statusFor(item);
+            const li = document.createElement("li");
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = `row${item.id === selectedId ? " selected" : ""}`;
+            button.innerHTML = `
+              <span class="status-light ${chosen.color}" title="${chosen.label}" aria-label="${chosen.label}"></span>
+              <span class="swatch" style="background:${normalizeHex(item.colorHex)}"></span>
+              <span class="row-info">
+                <span class="row-title">${esc(item.brand)} · ${esc(item.material)}</span>
+                <span class="row-sub">${esc(item.colorName || "Ohne Farbe")} · ${esc(item.location || "Kein Lagerort")}</span>
+              </span>
+              <span class="row-rest">${Math.round(item.remaining)} g<small>${Math.round(percent(item))}%</small></span>
+            `;
+            button.addEventListener("click", () => { selectedId = item.id; render(); });
+            li.append(button);
+            list.append(li);
+          });
+        }
+      }
+
+      renderDetail();
+      renderJobs();
+      renderReorder();
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      const days = Number($("trendRange")?.value || 30);
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      start.setDate(start.getDate() - days + 1);
+
+      const points = Array.from({ length: days }, (_, index) => {
+        const date = new Date(start);
+        date.setDate(start.getDate() + index);
+        return { date, grams: 0, cost: 0 };
+      });
+
+      jobs.filter(job => {
+        const date = new Date(job.createdAt || "");
+        return !Number.isNaN(date.getTime()) && date >= start;
+      }).forEach(job => {
+        const date = new Date(job.createdAt);
+        const index = Math.floor((date.getTime() - start.getTime()) / 86400000);
+        if (index < 0 || index >= points.length) return;
+
+        points[index].grams += Number(job.grams || 0);
+        const totalCost = partsForJob(job).reduce((sum, part) => sum + (costOfPart(part) || 0), 0);
+        points[index].cost += totalCost;
+      });
+
+      const totalGrams = points.reduce((sum, point) => sum + point.grams, 0);
+      const totalCost = points.reduce((sum, point) => sum + point.cost, 0);
+
+      if ($("dashboardGrams")) $("dashboardGrams").textContent = `${totalGrams.toFixed(1)} g`;
+      if ($("dashboardCost")) $("dashboardCost").textContent = `${totalCost.toFixed(2)} €`;
+      if ($("dashboardJobs")) {
+        $("dashboardJobs").textContent = jobs.filter(job => {
+          const date = new Date(job.createdAt || "");
+          return !Number.isNaN(date.getTime()) && date >= start;
+        }).length;
+      }
+      if ($("dashboardWarnings")) $("dashboardWarnings").textContent = items.filter(item => percent(item) < 50).length;
+
+      const svg = $("trendChart");
+      if (svg) {
+        const W = 800, H = 220, P = 28;
+        const maxGrams = Math.max(1, ...points.map(point => point.grams));
+        const maxCost = Math.max(1, ...points.map(point => point.cost));
+
+        const makePath = (key, maxValue) => points.map((point, index) => {
+          const x = P + (index / Math.max(1, points.length - 1)) * (W - P * 2);
+          const y = H - P - (point[key] / maxValue) * (H - P * 2);
+          return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+        }).join(" ");
+
+        const grid = Array.from({ length: 5 }, (_, index) => {
+          const y = P + (index / 4) * (H - P * 2);
+          return `<line x1="${P}" y1="${y}" x2="${W - P}" y2="${y}" stroke="currentColor" opacity=".12"/>`;
+        }).join("");
+
+        svg.innerHTML = `
+          ${grid}
+          <path d="${makePath("grams", maxGrams)}" fill="none" stroke="#8b5cf6" stroke-width="3" />
+          <path d="${makePath("cost", maxCost)}" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="7 5" />
+        `;
+      }
+
+      const statusList = $("statusList");
+      if (statusList) {
+        statusList.replaceChildren();
+        [...items].sort((a, b) => percent(a) - percent(b)).forEach(item => {
+          const s = statusFor(item);
+          const li = document.createElement("li");
+          li.className = "safe-item";
+          li.innerHTML = `
+            <div>
+              <strong>${esc(item.brand)} · ${esc(item.material)}</strong>
+              <div class="meta">${esc(item.colorName || "Ohne Farbe")} · ${esc(item.location || "Kein Lagerort")}</div>
+            </div>
+            <div class="status-pill ${s.color}">
+              <i class="dot ${s.color}"></i>${s.color === "red" ? "Rot" : s.color === "yellow" ? "Gelb" : "Grün"} · ${Math.round(percent(item))}%
+            </div>
+          `;
+          statusList.append(li);
+        });
+
+        if (!items.length) {
+          const empty = document.createElement("li");
+          empty.className = "empty";
+          empty.textContent = "Noch keine Spulen vorhanden.";
+          statusList.append(empty);
+        }
+      }
+
+      const history = $("dashboardHistory");
+      if (history) {
+        history.replaceChildren();
+        const inRange = jobs.filter(job => {
+          const date = new Date(job.createdAt || "");
+          return !Number.isNaN(date.getTime()) && date >= start;
+        }).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+        if (!inRange.length) {
+          const empty = document.createElement("li");
+          empty.className = "empty";
+          empty.textContent = "Keine Aufträge im gewählten Zeitraum.";
+          history.append(empty);
+          return;
+        }
+
+        inRange.forEach(job => {
+          const li = document.createElement("li");
+          const total = Number(job.grams || 0);
+          const cost = partsForJob(job).reduce((sum, part) => sum + (costOfPart(part) || 0), 0);
+
+          li.innerHTML = `
+            <strong>${esc(job.name || "Druckauftrag")}</strong>
+            <div class="job-meta">${esc(partsForJob(job).map(part => `${part.spoolLabel || "Filament"} (${Number(part.grams || 0).toFixed(1)} g)`).join(" + "))} · Gesamt ${total.toFixed(1)} g · ${cost.toFixed(2)} € · ${esc(dateText(job.createdAt))}</div>
+          `;
+          history.append(li);
+        });
+      }
+    }
+
+    $("spoolForm")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const isNew = !editingId;
+      const brand = isNew ? ($("brandSelect")?.value || "").trim() : ($("brandInput")?.value || "").trim();
+      const material = isNew ? ($("materialSelect")?.value || "").trim() : ($("materialInput")?.value || "").trim();
+      const desiredColor = isNew ? $("colorSelect")?.value : null;
+      const colorName = isNew
+        ? (desiredColor === "__custom__" ? ($("colorName")?.value || "").trim() : desiredColor || "")
+        : ($("colorName")?.value || "").trim();
+
+      const spoolWeight = num($("spoolWeight")?.value, NaN);
+      const remaining = num($("remaining")?.value, NaN);
+      const price = num($("price")?.value, NaN);
+      const totalText = ($("totalWeight")?.value || "").trim();
+      const totalWeight = totalText ? num(totalText, NaN) : null;
+
+      if (!brand || !material) return alert("Bitte Marke und Material angeben.");
+      if (isNew && desiredColor === "__custom__" && !colorName) return alert("Bitte eine eigene Farbe eingeben.");
+      if (!Number.isFinite(spoolWeight) || spoolWeight <= 0) return alert("Nettogewicht muss größer als 0 sein.");
+      if (!Number.isFinite(remaining) || remaining < 0 || remaining > spoolWeight) return alert("Restmenge muss zwischen 0 und dem Nettogewicht liegen.");
+      if (!Number.isFinite(price) || price < 0) return alert("Bitte einen gültigen Preis eingeben.");
+      if (totalWeight !== null && (!Number.isFinite(totalWeight) || totalWeight < spoolWeight)) return alert("Gesamtgewicht muss mindestens dem Nettogewicht entsprechen.");
+
+      const sellerUrl = normalizeSellerUrl($("sellerUrl")?.value || "");
+      if (sellerUrl === null) return alert("Bitte einen gültigen Link mit http:// oder https:// eingeben.");
+
+      const code = codeNorm($("code")?.value || "");
+      if (code && items.some(item => item.code === code && item.id !== editingId)) return alert("Dieser Scan-Code ist bereits vergeben.");
+
+      const previous = items.find(item => item.id === editingId);
+      const item = {
+        id: editingId || uid(),
+        brand,
+        material,
+        colorName,
+        colorHex: normalizeHex($("colorHex")?.value || "#b9c2d0"),
+        diameter: num($("diameter")?.value, 1.75),
+        spoolWeight,
+        totalWeight,
+        emptySpoolWeight: totalWeight === null ? null : totalWeight - spoolWeight,
+        remaining,
+        price,
+        priceHistory: savePriceHistory(previous, price),
+        location: $("locationSelect")?.value || "Trocken Kiste",
+        purchased: $("purchased")?.value || "",
+        nozzleTemp: ($("nozzleTemp")?.value || "").trim(),
+        bedTemp: ($("bedTemp")?.value || "").trim(),
+        sellerUrl,
+        code,
+        notes: ($("notes")?.value || "").trim()
+      };
+
+      if (item.diameter <= 0) return alert("Durchmesser muss größer als 0 sein.");
+
+      const index = items.findIndex(entry => entry.id === item.id);
+      if (index < 0) items.push(item); else items[index] = item;
+
+      selectedId = item.id;
+      saveItems();
+      syncReorder();
+      const modal = $("spoolModal");
+      if (modal) modal.classList.add("hidden");
+      render();
+    });
+
+    $("jobForm")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const name = ($("jobName")?.value || "").trim();
+      if (!name) return alert("Bitte einen Namen für den Druckauftrag eingeben.");
+
+      const rows = [...document.querySelectorAll(".job-line")];
+      const parts = [];
+
+      try {
+        rows.forEach(line => {
+          const selected = line.querySelector(".job-spool")?.value;
+          const item = items.find(row => row.id === selected);
+          const grams = num(line.querySelector(".job-grams")?.value, NaN);
+
+          if (!item || !Number.isFinite(grams) || grams <= 0) {
+            throw new Error("Bitte in jeder Zeile ein Filament mit gültigem Verbrauch wählen.");
+          }
+
+          parts.push({
+            spoolId: item.id,
+            spoolLabel: `${item.brand} · ${item.material} · ${item.colorName || "Ohne Farbe"}`,
+            grams,
+            cost: item.spoolWeight > 0 ? grams * item.price / item.spoolWeight : null
+          });
+        });
+
+        const totals = new Map();
+        parts.forEach(part => {
+          totals.set(part.spoolId, (totals.get(part.spoolId) || 0) + part.grams);
+        });
+
+        for (const [spoolId, grams] of totals) {
+          const item = items.find(row => row.id === spoolId);
+          if (!item || grams > Number(item.remaining || 0)) {
+            return alert(`Nicht genug Filament vorhanden. Verfügbar: ${Math.round(item?.remaining || 0)} g.`);
+          }
+        }
+
+        const job = {
+          id: uid(),
+          name,
+          parts,
+          grams: parts.reduce((sum, part) => sum + part.grams, 0),
+          cost: parts.reduce((sum, part) => sum + (part.cost || 0), 0),
+          createdAt: new Date().toISOString()
+        };
+
+        totals.forEach((grams, spoolId) => {
+          const item = items.find(row => row.id === spoolId);
+          if (item) item.remaining = Math.max(0, Number(item.remaining || 0) - grams);
+        });
+
+        jobs.push(job);
+        saveItems();
+        saveJobs();
+        syncReorder();
+
+        const modal = $("jobModal");
+        if (modal) modal.classList.add("hidden");
+
+        render();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    $("newBtn")?.addEventListener("click", () => openSpoolForm());
+    $("jobBtn")?.addEventListener("click", () => {
+      $("jobName").value = "";
+      $("jobSpoolSearch").value = "";
+      const container = $("jobLines");
+      if (container) {
+        container.replaceChildren();
+        addJobLine();
+      }
+      const modal = $("jobModal");
+      if (modal) modal.classList.remove("hidden");
+    });
+
+    $("addJobLineBtn")?.addEventListener("click", addJobLine);
+    $("jobSpoolSearch")?.addEventListener("input", refreshJobSelects);
+
+    $("brandSelect")?.addEventListener("change", fillMaterialSelect);
+
+    $("colorSelect")?.addEventListener("change", () => {
+      const value = $("colorSelect")?.value;
+      const custom = value === "__custom__";
+      if ($("colorName")) $("colorName").classList.toggle("hidden", !custom);
+      if (custom) {
+        if ($("colorName")) $("colorName").focus();
+        if ($("colorHex")) $("colorHex").value = "#b9c2d0";
+      } else {
+        if ($("colorName")) $("colorName").value = "";
+        if ($("colorHex")) $("colorHex").value = COLOR_MAP[value] || "#b9c2d0";
+      }
+    });
+
+    $("spoolWeight")?.addEventListener("input", updateEmptySpoolWeight);
+    $("totalWeight")?.addEventListener("input", updateEmptySpoolWeight);
+
+    $("search")?.addEventListener("input", render);
+    ["brandFilter", "materialFilter", "sort", "lowOnly"].forEach((id) => {
+      const el = $(id);
+      if (el) el.addEventListener("change", render);
+    });
+
+    $("importBtn")?.addEventListener("click", () => $("csvFile")?.click());
+    $("csvFile")?.addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const text = String(reader.result || "").replace(/^\uFEFF/, "");
+          const firstLine = text.split(/\r?\n/, 1)[0] || "";
+          const delimiter = (firstLine.match(/;/g) || []).length >= (firstLine.match(/,/g) || []).length ? ";" : ",";
+          const rows = [];
+          let row = [];
+          let cell = "";
+          let quoted = false;
+
+          for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            if (ch === '"' && quoted && text[i + 1] === '"') { cell += '"'; i++; }
+            else if (ch === '"') quoted = !quoted;
+            else if (ch === delimiter && !quoted) { row.push(cell); cell = ""; }
+            else if ((ch === "\n" || ch === "\r") && !quoted) {
+              if (ch === "\r" && text[i + 1] === "\n") i++;
+              row.push(cell);
+              rows.push(row);
+              row = [];
+              cell = "";
+            } else {
+              cell += ch;
+            }
+          }
+
+          if (cell || row.length) {
+            row.push(cell);
+            rows.push(row);
+          }
+
+          if (rows.length < 2) throw new Error("CSV enthält keine Datenzeilen.");
+
+          const headers = rows.shift().map(value => value.trim().toLowerCase());
+          const aliases = {
+            "marke": "brand", "brand": "brand",
+            "material": "material",
+            "farbe": "colorName", "color": "colorName",
+            "filament-nettogewicht (g)": "spoolWeight", "spulengewicht": "spoolWeight",
+            "rest": "remaining", "rest (g)": "remaining",
+            "preis": "price", "preis (€)": "price",
+            "lagerort": "location", "durchmesser": "diameter", "durchmesser (mm)": "diameter"
+          };
+
+          let imported = 0;
+          rows.forEach(values => {
+            const raw = {};
+            headers.forEach((header, index) => {
+              const key = aliases[header];
+              if (key) raw[key] = values[index] || "";
+            });
+
+            if (!raw.brand || !raw.material) return;
+
+            const weight = num(raw.spoolWeight, 1000);
+            const price = num(raw.price, 0);
+
+            items.push({
+              id: uid(),
+              brand: String(raw.brand).trim(),
+              material: String(raw.material).trim(),
+              colorName: raw.colorName || "",
+              colorHex: "#b9c2d0",
+              diameter: num(raw.diameter, 1.75),
+              spoolWeight: weight,
+              totalWeight: null,
+              emptySpoolWeight: null,
+              remaining: num(raw.remaining, weight),
+              price,
+              priceHistory: [{ at: new Date().toISOString(), price }],
+              location: raw.location || "Trocken Kiste",
+              purchased: "",
+              nozzleTemp: "",
+              bedTemp: "",
+              sellerUrl: "",
+              code: "",
+              notes: ""
+            });
+
+            imported++;
+          });
+
+          saveItems();
+          syncReorder();
+          render();
+          alert(`${imported} Spule(n) importiert.`);
+        } catch (error) {
+          alert(`CSV-Import fehlgeschlagen: ${error.message}`);
+        }
+      };
+
+      reader.readAsText(file);
+      event.target.value = "";
+    });
+
+    $("exportBtn")?.addEventListener("click", () => {
+      const headers = ["Marke","Material","Farbe","Farbcode","Durchmesser (mm)","Nettogewicht (g)","Rest (g)","Preis (€)","Lagerort","Gekauft am","Verkäufer-Link","Notizen"];
+      const keys = ["brand","material","colorName","colorHex","diameter","spoolWeight","remaining","price","location","purchased","sellerUrl","notes"];
+      const quote = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+
+      const csv = "\uFEFF" + [headers, ...items.map(item => keys.map(key => item[key]))]
+        .map(row => row.map(quote).join(";"))
+        .join("\r\n");
+
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      link.download = "3d-druck-helper-filamente.csv";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    });
+
+    $("trendRange")?.addEventListener("change", renderDashboard);
+
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+
+    fillBrandSelect();
+    syncReorder();
+    render();
+    showView("home");
+
+    setTimeout(() => {
+      const splash = $("splash");
+      if (splash) splash.classList.add("hidden");
+    }, 450);
+  </script>
+</body>
+</html>
